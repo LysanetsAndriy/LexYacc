@@ -1,0 +1,19 @@
+{
+  "type": "|",
+  "left": {
+  "type": "+",
+  "left": {
+  "type": "M",
+  "left": {
+  "type": "N",
+  "value": 5.000000
+},
+  "right": null
+},
+  "right": {
+  "type": "N",
+  "value": 2.000000
+}
+},
+  "right": null
+}

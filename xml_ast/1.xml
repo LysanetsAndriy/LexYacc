@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ast>
+<node type="%">
+  <left>
+<node type="N" value="10.000000" />
+  </left>
+  <right>
+<node type="N" value="3.000000" />
+  </right>
+</node>
+</ast>

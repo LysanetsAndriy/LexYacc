@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ast>
+<node type="|">
+  <left>
+<node type="+">
+  <left>
+<node type="M">
+  <left>
+<node type="N" value="5.000000" />
+  </left>
+  <right>null</right>
+</node>
+  </left>
+  <right>
+<node type="N" value="2.000000" />
+  </right>
+</node>
+  </left>
+  <right>null</right>
+</node>
+</ast>

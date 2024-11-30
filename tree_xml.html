@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Візуалізація AST</title>
+    <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #cy {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ccc;
+            display: none; /* Сховати до завантаження файлу */
+        }
+        #controls {
+            margin-bottom: 20px;
+        }
+        #controls input {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Візуалізація AST (XML)</h1>
+
+<div id="controls">
+    <input type="file" id="fileInput" accept=".xml">
+    <button id="loadXml">Завантажити XML</button>
+</div>
+
+<div id="cy"></div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const loadButton = document.getElementById('loadXml');
+    const cyContainer = document.getElementById('cy');
+
+    let nodeIdCounter = 0;
+    function generateNodeId() {
+        return 'node' + (nodeIdCounter++);
+    }
+
+    function traverseXML(node, parentId, elements) {
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+        const currentId = generateNodeId();
+        const type = node.getAttribute('type');
+        const value = node.getAttribute('value');
+
+        elements.push({
+            data: { id: currentId, label: type + (value ? `: ${value}` : '') }
+        });
+
+        if (parentId) {
+            elements.push({
+                data: { source: parentId, target: currentId }
+            });
+        }
+
+        const children = node.children;
+        for (let i = 0; i < children.length; i++) {
+            const child = children[i];
+            if (child.tagName === 'left' || child.tagName === 'right') {
+                for (let j = 0; j < child.children.length; j++) {
+                    traverseXML(child.children[j], currentId, elements);
+                }
+            }
+        }
+    }
+
+    function loadAndVisualizeXML(xmlContent) {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlContent, "application/xml");
+
+        const parseError = xmlDoc.getElementsByTagName("parsererror");
+        if (parseError.length > 0) {
+            alert("Помилка парсингу XML.");
+            return;
+        }
+
+        const root = xmlDoc.getElementsByTagName('ast')[0];
+        if (!root) {
+            alert("XML не містить кореневого елемента <ast>.");
+            return;
+        }
+
+        const astNode = root.firstElementChild;
+        if (!astNode) {
+            alert("Кореневий елемент <ast> не містить вузлів.");
+            return;
+        }
+
+        const elements = [];
+        traverseXML(astNode, null, elements);
+
+        const cy = cytoscape({
+            container: cyContainer,
+
+            elements: elements,
+
+            style: [
+                {
+                    selector: 'node',
+                    style: {
+                        'label': 'data(label)',
+                        'text-valign': 'center',
+                        'color': '#fff',
+                        'background-color': '#0074D9',
+                        'text-outline-width': 2,
+                        'text-outline-color': '#0074D9',
+                        'width': 'label',
+                        'height': 'label',
+                        'padding': '10px'
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 2,
+                        'line-color': '#ccc',
+                        'target-arrow-color': '#ccc',
+                        'target-arrow-shape': 'triangle'
+                    }
+                }
+            ],
+
+            layout: {
+                name: 'breadthfirst',
+                directed: true,
+                padding: 10,
+                spacingFactor: 1.75,
+                animate: false,
+                nodeDimensionsIncludeLabels: true
+            }
+        });
+
+        cyContainer.style.display = 'block';
+    }
+
+    loadButton.addEventListener('click', () => {
+        const file = fileInput.files[0];
+        if (!file) {
+            alert("Будь ласка, виберіть XML файл для завантаження.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const xmlContent = e.target.result;
+            loadAndVisualizeXML(xmlContent);
+        };
+        reader.onerror = function() {
+            alert("Помилка при читанні файлу.");
+        };
+        reader.readAsText(file);
+    });
+</script>
+
+</body>
+</html>
